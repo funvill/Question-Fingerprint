@@ -1,0 +1,77 @@
+{
+    "questions": [
+        {
+            "id": 0,
+            "text": "Did you graduate college or university?",
+            "probability": 0.5
+        },
+        {
+            "id": 1,
+            "text": "Are you married?",
+            "probability": 0
+        },
+        {
+            "id": 2,
+            "text": "Have you traveled to Europe?",
+            "probability": 0.1
+        },
+        {
+            "id": 3,
+            "text": "Do you play games more then 3 hours a week?",
+            "probability": 0
+        },
+        {
+            "id": 4,
+            "text": "Do you like blue cheese?",
+            "probability": 0.1
+        }
+    ],
+    "answers": [
+        {
+            "id": 0,
+            "userID": 0,
+            "questionID": 0,
+            "answer": 0
+        },
+        {
+            "id": 1,
+            "userID": 1,
+            "questionID": 0,
+            "answer": 1
+        },
+        {
+            "id": 2,
+            "userID": 0,
+            "questionID": 1,
+            "answer": 0
+        },
+        {
+            "id": 3,
+            "userID": 0,
+            "questionID": 3,
+            "answer": 0
+        },
+        {
+            "id": 4,
+            "userID": 0,
+            "questionID": 3,
+            "answer": 0
+        },
+        {
+            "id": 5,
+            "userID": 2,
+            "questionID": 3,
+            "answer": 0
+        }
+    ],
+    "users": [
+        {
+            "id": 0,
+            "name": "Steven"
+        },
+        {
+            "id": 1,
+            "name": "Bob"
+        }
+    ]
+}

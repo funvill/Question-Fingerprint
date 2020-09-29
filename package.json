@@ -2,9 +2,13 @@
   "name": "questionfingerprint",
   "version": "1.0.0",
   "description": "Ask users a series of yes or no questions to fingerprint them",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
+    "start": "node spp.js",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engines": {
+    "node": "12.x"
   },
   "author": "Steven Smethurst",
   "license": "none",

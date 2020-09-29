@@ -14,6 +14,8 @@ var Filter = require('bad-words');
 
 var app = express();
 
+const PORT = process.env.PORT || 3000
+
 //configure body-parser for express
 app.use(bodyParser.urlencoded({extended:false}));
 app.use(bodyParser.json());
@@ -204,9 +206,12 @@ app.get('/stats', function (req, res) {
     
 });
 
+app.get('/data.json', function (req, res) {  
+    res.sendFile((path.join(__dirname, 'data.json') ));
+}); 
 
 
-var server = app.listen(3000, function () {
+var server = app.listen(PORT, function () {
     var host = server.address().address;
     var port = server.address().port;
     console.log("Example app listening at http://%s:%s", host, port);

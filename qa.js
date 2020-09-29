@@ -12,7 +12,8 @@ let data = JSON.parse(rawdata);
 // - Check to see if the question has already been asked. We will probably need to do some sort 
 //   of fuzy search to find simlare answers.
 function AskQuestion( userID, questionText ) {
-    var row = {"id": data.questions.length, "text": questionText, "probability": 0.1 }
+    var date = new Date(); 
+    var row = {"id": data.questions.length, "created": date.toISOString(), "text": questionText, "probability": 0.1 }
     data.questions.push( row); 
 
     // Save database to file. 
@@ -31,6 +32,9 @@ function RecalulateProbability(questionID) {
     // Find the total of all the answer value. 
     var sumOfAnswers = 0 ; 
     for( var offset = 0 ; offset < allAnswersToThisQuestion.length ; offset++) {
+        if( allAnswersToThisQuestion[offset].answer == null ) {
+            continue; 
+        }
         sumOfAnswers += allAnswersToThisQuestion[offset].answer ; 
     }
 
@@ -86,7 +90,8 @@ function AnswerQuestion(userID, questionID, answer) {
     }
 
     // Add the new answer. 
-    var row = {"id": data.answers.length, "userID": userID, "questionID": questionID, "answer": answer} ; 
+    var date = new Date(); 
+    var row = {"id": data.answers.length, "userID": userID, "created": date.toISOString(), "questionID": questionID, "answer": answer} ; 
     data.answers.push( row); 
 
     // Recalulate the question's probability 
@@ -96,15 +101,15 @@ function AnswerQuestion(userID, questionID, answer) {
     fs.writeFileSync('data.json', JSON.stringify(data))
 }
 
-function GetQuestion(userID) {
+function GetNextQuestion(userID) {
    
     // Get a list of questions that this user has answered before. 
     var questionsAnswered = data.answers.filter( function (answer) {
         return answer.userID == userID 
     })
 
-    console.log( "questionsAnswered: " )
-    console.log( questionsAnswered )
+    // console.log( "questionsAnswered: " )
+    // console.log( questionsAnswered )
 
     // Filter questions for ones that have not been answered before 
     var possibleQuestions = data.questions.filter( function(question){
@@ -116,8 +121,8 @@ function GetQuestion(userID) {
         return true; 
     })
 
-    console.log( "possibleQuestions: ")
-    console.log( possibleQuestions )
+    // console.log( "possibleQuestions: ")
+    // console.log( possibleQuestions )
 
     // Sort the possible questions based on their probability closeness to 0.5 
     possibleQuestions.sort(function(a,b){
@@ -129,11 +134,46 @@ function GetQuestion(userID) {
         return 0 ;
     })
 
-    console.log( "possibleQuestions AfterSort: ")
-    console.log( possibleQuestions )
+    // console.log( "possibleQuestions AfterSort: ")
+    // console.log( possibleQuestions )
 
     // Return the top question 
     return possibleQuestions[0] ; 
+}
+
+function GetQuestionData(questionID) {
+    var output = {'questions': [] };
+
+    // Add the question
+    for( var offset = 0 ; offset < data.questions.length ; offset++) {
+        if(data.questions[offset].id == questionID ) {
+            output.questions.push( data.questions[offset] )
+            break; 
+        }
+    }
+
+    return output; 
+}
+
+function GetUserData(userID) {
+    var output = {'users': [], 'answers': [] };
+
+    // Add the user info 
+    for( var offset = 0 ; offset < data.users.length ; offset++) {
+        if(data.users[offset].id == userID ) {
+            output.users.push( data.users[offset] )
+            break; 
+        }
+    }
+    
+    // Add the answered questions
+    for( var offset = 0 ; offset < data.answers.length ; offset++) {
+        if(data.answers[offset].userID == userID ) {
+            output.answers.push( data.answers[offset] )
+        }
+    }
+
+    return output; 
 }
 
 
@@ -147,7 +187,8 @@ function GetUserIDByIPAddress(ipAddress) {
 
     // Could not find the user by the IP address. 
     // Add a new users. 
-    var row = { "id": data.users.length, "ipAddress": ipAddress };
+    var date = new Date(); 
+    var row = { "id": data.users.length, "created": date.toISOString(), "ipAddress": ipAddress };
     data.users.push( row )
         
     // Save database to file. 
@@ -163,11 +204,10 @@ function GetUserIDByIPAddress(ipAddress) {
 // Alters database 
 module.exports.AnswerQuestion = AnswerQuestion; 
 module.exports.AskQuestion = AskQuestion; 
-
-// Read only
-module.exports.GetQuestion = GetQuestion; 
-
-// Utilites 
-module.exports.GetUserIDByIPAddress = GetUserIDByIPAddress; 
 module.exports.RecalulateAllProbability = RecalulateAllProbability; 
 
+// Read only
+module.exports.GetNextQuestion = GetNextQuestion; 
+module.exports.GetUserData = GetUserData; 
+module.exports.GetQuestionData = GetQuestionData; 
+module.exports.GetUserIDByIPAddress = GetUserIDByIPAddress; 

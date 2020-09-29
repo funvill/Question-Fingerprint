@@ -1,9 +1,12 @@
 <div id='question'>
     <p>{{QUESTION_TEXT}}</p>
 
-    <form action="?" method=POST>
+    <form action="/answer" method=POST>
         <input type='hidden' name='questionID' value='{{QUESTION_ID}}'>
         <input type="submit" name='answer' value="Yes">
         <input type="submit" name='answer' value="No">
+        <input type="submit" name='answer' value="Skip">
     </form>
+
+    <a href='/report'>Report this question</a> 
 </div>

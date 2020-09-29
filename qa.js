@@ -28,8 +28,6 @@ function RecalulateProbability(questionID) {
         return answer.questionID == questionID; 
     })
 
-    
-
     // Find the total of all the answer value. 
     var sumOfAnswers = 0 ; 
     for( var offset = 0 ; offset < allAnswersToThisQuestion.length ; offset++) {
@@ -135,7 +133,28 @@ function GetQuestion(userID) {
     console.log( possibleQuestions )
 
     // Return the top question 
-    return possibleQuestions[0].text ; 
+    return possibleQuestions[0] ; 
+}
+
+
+function GetUserIDByIPAddress(ipAddress) {
+    for( var offset = 0 ; offset < data.users.length ; offset++) {
+        if( data.users[offset].ipAddress == ipAddress ) {
+            // Found the user 
+            return data.users[offset].id ; 
+        }
+    }
+
+    // Could not find the user by the IP address. 
+    // Add a new users. 
+    var row = { "id": data.users.length, "ipAddress": ipAddress };
+    data.users.push( row )
+        
+    // Save database to file. 
+    fs.writeFileSync('data.json', JSON.stringify(data))
+
+    // Return the new length. 
+    return data.users.length ;  
 }
 
 // Exports 
@@ -149,5 +168,6 @@ module.exports.AskQuestion = AskQuestion;
 module.exports.GetQuestion = GetQuestion; 
 
 // Utilites 
+module.exports.GetUserIDByIPAddress = GetUserIDByIPAddress; 
 module.exports.RecalulateAllProbability = RecalulateAllProbability; 
 

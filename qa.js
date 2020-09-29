@@ -142,13 +142,20 @@ function GetNextQuestion(userID) {
 }
 
 function GetQuestionData(questionID) {
-    var output = {'questions': [] };
+    var output = {'questions': [], 'answers': [] };
 
     // Add the question
     for( var offset = 0 ; offset < data.questions.length ; offset++) {
         if(data.questions[offset].id == questionID ) {
             output.questions.push( data.questions[offset] )
             break; 
+        }
+    }
+
+    // Add all the answers 
+    for( var offset = 0 ; offset < data.answers.length ; offset++) {
+        if(data.answers[offset].questionID == questionID ) {
+            output.answers.push( data.answers[offset] )
         }
     }
 

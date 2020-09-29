@@ -158,7 +158,7 @@ app.get('/stats', function (req, res) {
     html_report += "<div>";
     html_report += "<h2>Your Answers</h2>";
     html_report += "<table width='100%'>";
-    html_report += "<tr><th>Question</th><th>Answer</th><th>Probability of Yes</th></tr>";
+    html_report += "<tr><th>Question</th><th>Your Answer</th><th>Probability of Yes</th><th>People answered</th><th>Good question?<br/>Lower better</th></tr>";
 
     for( var offset = 0 ; offset < userData.answers.length ; offset++) {
         html_report += "<tr>";
@@ -186,6 +186,9 @@ app.get('/stats', function (req, res) {
         }      
         html_report += "</strong></td>"
         html_report += "<td>" + Math.round( questionData.questions[0].probability * 100)  + "%</td>" ;
+        html_report += "<td>" + questionData.answers.length + "</td>" ;
+        html_report += "<td>" + Math.round( Math.abs(0.5 - questionData.questions[0].probability) * 100) + "</td>" ;
+        
         html_report += "</tr>";
     }
     html_report += "</table>";

@@ -187,7 +187,7 @@ app.get('/stats', function (req, res) {
         html_report += "</strong></td>"
         html_report += "<td>" + Math.round( questionData.questions[0].probability * 100)  + "%</td>" ;
         html_report += "<td>" + questionData.answers.length + "</td>" ;
-        html_report += "<td>" + Math.round( Math.abs(0.5 - questionData.questions[0].probability) * 100) + "</td>" ;
+        html_report += "<td>" + Math.round( Math.abs(0.5 - questionData.questions[0].probability) * 2 * 100) + "</td>" ;
         
         html_report += "</tr>";
     }

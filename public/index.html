@@ -1,0 +1,54 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Question Fingerprint</title>
+  <link rel="stylesheet" href="main.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Question Fingerprint</h1>
+    <div id="main-content">
+      <div id="question-section" style="display:none;">
+        <div class="question">
+          <span id="question-id" style="font-size:0.9em;color:#888;"></span>
+          <span id="question-text"></span>
+        </div>
+        <div class="options">
+          <button id="optionA"></button>
+          <button id="optionB"></button>
+          <button id="skip-question" style="background:#aaa;color:#fff;">Skip</button>
+        </div>
+        <div class="question-footer">
+          <a href="#" id="flag-question">Flag this question</a>
+          &nbsp;|&nbsp;
+          <a href="#" id="question-stats-link">Question stats</a>
+        </div>
+      </div>
+      <div id="no-questions-section" style="display:none;">
+        <div class="message">No more questions available. Add a new question below!</div>
+      </div>
+      <div class="add-question">
+        <h2>Add a New Question</h2>
+        <form id="add-question-form">
+          <label for="question">Question</label>
+          <textarea id="question" required placeholder="Ask your question here"></textarea>
+          <label for="optionAInput">Option A</label>
+          <input id="optionAInput" required value="Yes" />
+          <label for="optionBInput">Option B</label>
+          <input id="optionBInput" required value="No" />
+          <button type="submit">Submit Question</button>
+        </form>
+        <div class="message" id="form-message"></div>
+      </div>
+    </div>
+  </div>
+  <footer style="text-align:center;margin:2em 0 0 0;color:#888;font-size:0.95em;">
+    <a href="#" id="footer-session-link">Session ID: <span id="footer-session-id"></span></a> |
+    Questions answered: <span id="footer-answered-count">0</span>
+  </footer>
+  <script src="main.js"></script>
+</body>
+</html>

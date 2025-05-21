@@ -1,0 +1,50 @@
+<!-- Question Stats Page -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Question Stats</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f7f7f7; margin: 0; padding: 0; }
+    .container { max-width: 500px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 2em; }
+    h1 { text-align: center; }
+    .stat { font-size: 1.1em; margin: 1em 0; }
+    .back-link { color: #0078d4; text-decoration: underline; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Question Stats</h1>
+    <div id="question-info"></div>
+    <div id="stats"></div>
+    <div style="text-align:center;margin-top:2em;">
+      <a class="back-link" href="/">&#8592; Back to questions</a>
+    </div>
+  </div>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const questionId = params.get('questionId');
+    const questionInfoDiv = document.getElementById('question-info');
+    const statsDiv = document.getElementById('stats');
+    if (!questionId) {
+      questionInfoDiv.textContent = 'No question ID provided.';
+    } else {
+      fetch(`/api/questions/stats?questionId=${questionId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.error) {
+            questionInfoDiv.textContent = data.error;
+            return;
+          }
+          questionInfoDiv.innerHTML = `<b>Q#${data.questionId}:</b> ${data.text}`;
+          statsDiv.innerHTML = `
+            <div class="stat">${data.optionA}: <b>${data.percentA}%</b></div>
+            <div class="stat">${data.optionB}: <b>${data.percentB}%</b></div>
+            <div class="stat">Total answers: <b>${data.total}</b></div>
+          `;
+        });
+    }
+  </script>
+</body>
+</html>

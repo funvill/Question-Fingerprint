@@ -1,0 +1,60 @@
+<!-- Session Stats Page -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Session Stats</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f7f7f7; margin: 0; padding: 0; }
+    .container { max-width: 500px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 2em; }
+    h1 { text-align: center; }
+    .stat { font-size: 1.1em; margin: 1em 0; }
+    .answer-list { margin: 1em 0; }
+    .answer-list li { margin-bottom: 0.5em; }
+    .back-link { color: #0078d4; text-decoration: underline; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Session Stats</h1>
+    <div id="session-info"></div>
+    <div id="stats"></div>
+    <div id="recent-answers"></div>
+    <div style="text-align:center;margin-top:2em;">
+      <a class="back-link" href="/">&#8592; Back to questions</a>
+    </div>
+  </div>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get('sessionId');
+    const sessionInfoDiv = document.getElementById('session-info');
+    const statsDiv = document.getElementById('stats');
+    const recentAnswersDiv = document.getElementById('recent-answers');
+    if (!sessionId) {
+      sessionInfoDiv.textContent = 'No session ID provided.';
+    } else {
+      fetch(`/api/session/stats?sessionId=${sessionId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.error) {
+            sessionInfoDiv.textContent = data.error;
+            return;
+          }
+          sessionInfoDiv.innerHTML = `<b>Session ID:</b> ${data.sessionId}`;
+          statsDiv.innerHTML = `<div class="stat">Questions answered: <b>${data.questionCount}</b></div>`;
+          if (data.recentAnswers && data.recentAnswers.length > 0) {
+            let html = '<div class="stat">Last 10 answers:</div><ul class="answer-list">';
+            data.recentAnswers.forEach(ans => {
+              html += `<li>Q#${ans.questionId}: <b>${ans.answer_value}</b></li>`;
+            });
+            html += '</ul>';
+            recentAnswersDiv.innerHTML = html;
+          } else {
+            recentAnswersDiv.innerHTML = '<div class="stat">No recent answers.</div>';
+          }
+        });
+    }
+  </script>
+</body>
+</html>

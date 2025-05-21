@@ -28,6 +28,8 @@ const questionStatsLink = document.getElementById('question-stats-link');
 const footerSessionLink = document.getElementById('footer-session-link');
 const footerSessionId = document.getElementById('footer-session-id');
 const footerAnsweredCount = document.getElementById('footer-answered-count');
+const resetSessionBtn = document.getElementById('reset-session-btn');
+const resetWarning = document.getElementById('reset-warning');
 
 let currentQuestionId = null;
 let answeredCount = 0;
@@ -86,7 +88,17 @@ footerSessionLink.onclick = function(e) {
 };
 
 skipButton.onclick = function() {
-  loadNextQuestion();
+  const sessionId = localStorage.getItem('sessionId');
+  if (!currentQuestionId || !sessionId) return;
+  fetch('/api/questions/skip', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ questionId: currentQuestionId, sessionId })
+  })
+    .then(res => res.json())
+    .then(() => {
+      loadNextQuestion();
+    });
 };
 
 function updateFooter() {
@@ -142,6 +154,14 @@ addQuestionForm.onsubmit = function(e) {
         loadNextQuestion();
       }
     });
+};
+
+resetSessionBtn.onclick = function() {
+  resetWarning.style.display = 'block';
+  if (confirm('Are you sure you want to reset your session? You will not be able to recover your old session or answers!')) {
+    localStorage.removeItem('sessionId');
+    location.reload();
+  }
 };
 
 window.onload = function() {

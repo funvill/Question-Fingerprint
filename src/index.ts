@@ -67,6 +67,7 @@ db.exec(`
     text TEXT NOT NULL,
     optionA TEXT NOT NULL,
     optionB TEXT NOT NULL,
+    ratio REAL DEFAULT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
   );
   
@@ -78,6 +79,12 @@ db.exec(`
     session_id TEXT NOT NULL REFERENCES sessions(id),
     question_id INTEGER NOT NULL REFERENCES questions(id),
     answer_value TEXT NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (session_id, question_id)
+  );
+  CREATE TABLE IF NOT EXISTS skipped_questions (
+    session_id TEXT NOT NULL,
+    question_id INTEGER NOT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (session_id, question_id)
   );
@@ -94,6 +101,37 @@ db.exec(`
 const insertSession = db.prepare('INSERT INTO sessions (id) VALUES (?)');
 const insertQuestion = db.prepare('INSERT INTO questions (session_id, text, optionA, optionB) VALUES (?, ?, ?, ?)');
 const insertAnswer = db.prepare('INSERT INTO answers (session_id, question_id, answer_value) VALUES (?, ?, ?)');
+
+// --- Functions ---
+
+// Function to update the ratio for a question
+function updateQuestionRatio(questionId: number) {
+  // Count answers for A and B
+  const countA = (db.prepare('SELECT COUNT(*) as count FROM answers WHERE question_id = ? AND answer_value = ?').get(questionId, 'A') as any).count;
+  const countB = (db.prepare('SELECT COUNT(*) as count FROM answers WHERE question_id = ? AND answer_value = ?').get(questionId, 'B') as any).count;
+  const total = countA + countB;
+  let ratio: number | null = null;
+  if (total > 0) {
+    // Ratio is the smaller count divided by the total (so 0.5 is perfectly even)
+    ratio = Math.min(countA, countB) / total;
+  } else {
+    // No answers yet, set ratio to 50% so we can use this question
+    ratio = 0.5;
+  }
+  db.prepare('UPDATE questions SET ratio = ? WHERE id = ?').run(ratio, questionId);
+
+  console.log(`Updated question ${questionId} ratio to ${ratio}`);
+}
+
+
+// Debug
+// Go though all the questions and update the ratio
+// db.prepare('SELECT id FROM questions').all().forEach((row: any) => {
+//   const questionId = row.id;
+//   updateQuestionRatio(questionId);
+// });
+
+
 
 // --- Routes ---
 
@@ -147,6 +185,7 @@ app.post('/api/answer', (req: Request, res: Response) => {
     return res.status(400).json({ error: 'Question ID does not exist' });
   }
   insertAnswer.run(sessionId, questionId, answer);
+  updateQuestionRatio(questionId);
   res.json({ success: true });
 });
 
@@ -160,6 +199,17 @@ app.post('/api/questions/flag', (req: Request, res: Response) => {
     return res.status(400).json({ error: 'Question ID does not exist' });
   }
   db.prepare('INSERT INTO moderation (question_id, session_id) VALUES (?, ?)').run(questionId, sessionId);
+  res.json({ success: true });
+});
+
+// Endpoint to skip a question
+app.post('/api/questions/skip', (req: Request, res: Response) => {
+  const { questionId, sessionId } = req.body;
+  if (!questionId || !sessionId) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+  // Insert into skipped_questions
+  db.prepare('INSERT OR IGNORE INTO skipped_questions (session_id, question_id) VALUES (?, ?)').run(sessionId, questionId);
   res.json({ success: true });
 });
 
@@ -205,16 +255,38 @@ app.get('/api/questions/next', (req: Request, res: Response) => {
   if (sessionExists.count === 0) {
     return res.status(400).json({ error: 'Session ID does not exist' });
   }
-  const unansweredQuestions = db.prepare('SELECT * FROM questions WHERE session_id = ? AND id NOT IN (SELECT question_id FROM answers WHERE session_id = ?)').all(sessionId, sessionId) as any[];
-  if (unansweredQuestions.length === 0) {
+
+  // 1. Try to find any unanswered/unskipped questions (regardless of ratio)
+  let questions = db.prepare(`
+    SELECT * FROM questions 
+    WHERE id NOT IN (SELECT question_id FROM answers WHERE session_id = ?)
+      AND id NOT IN (SELECT question_id FROM skipped_questions WHERE session_id = ?)
+    ORDER BY created_at ASC, RANDOM()
+  `).all(sessionId, sessionId) as any[];
+
+  // 2. If there are any with a ratio, sort by closest to 0.5
+  if (questions.length > 0 && questions.some(q => q.ratio !== null)) {
+    questions = questions.sort((a, b) => {
+      // If both have ratio, sort by abs(ratio-0.5)
+      if (a.ratio !== null && b.ratio !== null) {
+        return Math.abs(a.ratio - 0.5) - Math.abs(b.ratio - 0.5);
+      }
+      // Prefer questions with a ratio
+      if (a.ratio !== null) return -1;
+      if (b.ratio !== null) return 1;
+      return 0;
+    });
+  }
+
+  if (questions.length === 0) {
     return res.status(404).json({ error: 'No more questions available' });
   }
-  const randomQuestion = unansweredQuestions[Math.floor(Math.random() * unansweredQuestions.length)];
+  const nextQuestion = questions[0];
   res.json({
-    questionId: randomQuestion.id,
-    text: randomQuestion.text,
-    optionA: randomQuestion.optionA,
-    optionB: randomQuestion.optionB,
+    questionId: nextQuestion.id,
+    text: nextQuestion.text,
+    optionA: nextQuestion.optionA,
+    optionB: nextQuestion.optionB,
   });
 });
 

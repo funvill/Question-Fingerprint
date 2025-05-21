@@ -37,8 +37,9 @@
  *                                  Payload: { text, optionA, optionB, sessionId }
  * - POST /api/questions/flag    - Reports a question for moderation
  *                                  Payload: { questionId, sessionId }
- * - GET  /api/questions/stats    - Gets statistics for a specific question
- *                                  Payload: { questionId }
+ * - GET  /api/questions/stats    - Gets statistics for all questions in a table, sorted by ratio
+ * - GET  /api/questions/stats?questionId=:id
+ *                                - Gets statistics for a specific question 
  * - GET  /api/session/stats      - Gets statistics for a specific session
  *                                  Payload: { sessionId }
  
@@ -290,31 +291,50 @@ app.get('/api/questions/next', (req: Request, res: Response) => {
   });
 });
 
+// Get statistics for all questions in a table, sorted by ratio
 app.get('/api/questions/stats', (req: Request, res: Response) => {
-  const { questionId } = req.query;
-  if (!questionId) {
-    return res.status(400).json({ error: 'Missing questionId' });
+  // If a questionId is provided, use the existing single-question logic
+  if (req.query.questionId) {
+    const questionId = req.query.questionId;
+    const question = db.prepare('SELECT * FROM questions WHERE id = ?').get(questionId) as any;
+    if (!question) {
+      return res.status(404).json({ error: 'Question not found' });
+    }
+    const total = (db.prepare('SELECT COUNT(*) as count FROM answers WHERE question_id = ?').get(questionId) as any).count;
+    const countA = (db.prepare('SELECT COUNT(*) as count FROM answers WHERE question_id = ? AND answer_value = ?').get(questionId, 'A') as any).count;
+    const countB = (db.prepare('SELECT COUNT(*) as count FROM answers WHERE question_id = ? AND answer_value = ?').get(questionId, 'B') as any).count;
+    const percentA = total > 0 ? Math.round((countA / total) * 100) : 0;
+    const percentB = total > 0 ? Math.round((countB / total) * 100) : 0;
+    return res.json({
+      questionId: question.id,
+      text: question.text,
+      optionA: question.optionA,
+      optionB: question.optionB,
+      percentA,
+      percentB,
+      total
+    });
   }
-  // Get question text and options
-  const question = db.prepare('SELECT * FROM questions WHERE id = ?').get(questionId) as any;
-  if (!question) {
-    return res.status(404).json({ error: 'Question not found' });
-  }
-  // Get answer counts
-  const total = (db.prepare('SELECT COUNT(*) as count FROM answers WHERE question_id = ?').get(questionId) as any).count;
-  const countA = (db.prepare('SELECT COUNT(*) as count FROM answers WHERE question_id = ? AND answer_value = ?').get(questionId, 'A') as any).count;
-  const countB = (db.prepare('SELECT COUNT(*) as count FROM answers WHERE question_id = ? AND answer_value = ?').get(questionId, 'B') as any).count;
-  const percentA = total > 0 ? Math.round((countA / total) * 100) : 0;
-  const percentB = total > 0 ? Math.round((countB / total) * 100) : 0;
-  res.json({
-    questionId: question.id,
-    text: question.text,
-    optionA: question.optionA,
-    optionB: question.optionB,
-    percentA,
-    percentB,
-    total
+  // Otherwise, return all questions with stats, sorted by ratio
+  const questions = db.prepare('SELECT * FROM questions ORDER BY CASE WHEN ratio IS NULL THEN 1 ELSE 0 END, ABS(ratio - 0.5) ASC').all() as any[];
+  const stats = questions.map(q => {
+    const total = (db.prepare('SELECT COUNT(*) as count FROM answers WHERE question_id = ?').get(q.id) as any).count;
+    const countA = (db.prepare('SELECT COUNT(*) as count FROM answers WHERE question_id = ? AND answer_value = ?').get(q.id, 'A') as any).count;
+    const countB = (db.prepare('SELECT COUNT(*) as count FROM answers WHERE question_id = ? AND answer_value = ?').get(q.id, 'B') as any).count;
+    const percentA = total > 0 ? Math.round((countA / total) * 100) : 0;
+    const percentB = total > 0 ? Math.round((countB / total) * 100) : 0;
+    return {
+      questionId: q.id,
+      text: q.text,
+      optionA: q.optionA,
+      optionB: q.optionB,
+      ratio: q.ratio,
+      percentA,
+      percentB,
+      total
+    };
   });
+  res.json({ questions: stats });
 });
 
 app.get('/api/session/stats', (req: Request, res: Response) => {

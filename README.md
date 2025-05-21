@@ -1,5 +1,7 @@
 # Question Fingerprint
 
+➡️ [Demo](https://questions.abluestar.com/) ⬅️
+
 This application is used to answer the following question
 
 > How many Yes or No question would you have to ask to uniquely identify someone?. What are these questions?
@@ -16,8 +18,11 @@ To figure out what questions work best, I created this application. It allows us
 
 ## Code quality
 
-I am using this application to learn [Nodejs](https://nodejs.org/en/) and [Vue.js](https://vuejs.org/), and maybe some [Machine Learning](https://en.wikipedia.org/wiki/Machine_learning) (ML). It will not be the optimal solution and I may take shortcuts for readablity. Fokes and Pull requests are welcome.
+100% vibe coded, no effort was taken.
 
-## Research
+## Research / Inspiration
 
 - [BEST Guess Who Strategy- 96% WIN record using MATH](https://www.youtube.com/watch?v=FRlbNOno5VA)
+- [20Q](http://20q.net/) - A early version of neural nets for the 20 Questions game
+- [OKTrends](https://web.archive.org/web/20110121100610/http://blog.okcupid.com/index.php) - Dating Research from OkCupid in 2010
+

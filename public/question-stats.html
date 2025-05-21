@@ -7,10 +7,13 @@
   <title>Question Stats</title>
   <style>
     body { font-family: Arial, sans-serif; background: #f7f7f7; margin: 0; padding: 0; }
-    .container { max-width: 500px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 2em; }
+    .container { max-width: 800px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #0001; padding: 2em; }
     h1 { text-align: center; }
     .stat { font-size: 1.1em; margin: 1em 0; }
     .back-link { color: #0078d4; text-decoration: underline; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1em; }
+    th, td { padding: 0.75em; text-align: left; border-bottom: 1px solid #ccc; }
+    th { background: #f2f2f2; }
   </style>
 </head>
 <body>
@@ -18,6 +21,7 @@
     <h1>Question Stats</h1>
     <div id="question-info"></div>
     <div id="stats"></div>
+    <div id="all-questions-table"></div>
     <div style="text-align:center;margin-top:2em;">
       <a class="back-link" href="/">&#8592; Back to questions</a>
     </div>
@@ -27,8 +31,38 @@
     const questionId = params.get('questionId');
     const questionInfoDiv = document.getElementById('question-info');
     const statsDiv = document.getElementById('stats');
+    const allQuestionsTableDiv = document.getElementById('all-questions-table');
     if (!questionId) {
-      questionInfoDiv.textContent = 'No question ID provided.';
+      // Show all questions in a table
+      fetch('/api/questions/stats')
+        .then(res => res.json())
+        .then(data => {
+          if (!data.questions || data.questions.length === 0) {
+            allQuestionsTableDiv.textContent = 'No questions found.';
+            return;
+          }
+          let html = `<table>
+            <thead><tr>
+              <th>ID</th>
+              <th>Question</th>
+              <th>A%</th>
+              <th>B%</th>
+              <th>Total</th>
+              <th>Ratio</th>
+            </tr></thead><tbody>`;
+          data.questions.forEach(q => {
+            html += `<tr>
+              <td><a href='?questionId=${q.questionId}'>${q.questionId}</a></td>
+              <td>${q.text}</td>
+              <td style='text-align:center;'>${q.percentA}%</td>
+              <td style='text-align:center;'>${q.percentB}%</td>
+              <td style='text-align:center;'>${q.total}</td>
+              <td style='text-align:center;'>${q.ratio !== null ? q.ratio.toFixed(2) : '-'}</td>
+            </tr>`;
+          });
+          html += '</tbody></table>';
+          allQuestionsTableDiv.innerHTML = html;
+        });
     } else {
       fetch(`/api/questions/stats?questionId=${questionId}`)
         .then(res => res.json())

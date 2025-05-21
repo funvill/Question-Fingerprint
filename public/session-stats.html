@@ -46,10 +46,19 @@
           if (data.recentAnswers && data.recentAnswers.length > 0) {
             let html = '<div class="stat">Last 10 answers:</div><ul class="answer-list">';
             data.recentAnswers.forEach(ans => {
-              html += `<li>Q#${ans.questionId}: <b>${ans.answer_value}</b></li>`;
+              html += `<li><a href='question-stats.html?questionId=${ans.questionId}'>#${ans.questionId}</a>: - <span class='question-text' id='qt-${ans.questionId}'>Loading...</span></li>`;
             });
             html += '</ul>';
             recentAnswersDiv.innerHTML = html;
+            // Fetch question text for each answer
+            data.recentAnswers.forEach(ans => {
+              fetch(`/api/questions/stats?questionId=${ans.questionId}`)
+                .then(res => res.json())
+                .then(qdata => {
+                  const el = document.getElementById('qt-' + ans.questionId);
+                  if (el && qdata.text) el.textContent = qdata.text;
+                });
+            });
           } else {
             recentAnswersDiv.innerHTML = '<div class="stat">No recent answers.</div>';
           }

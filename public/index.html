@@ -10,8 +10,9 @@
 <body>
   <div class="container">
     <h1>Question Fingerprint</h1>
+    <p>See the <a href='https://github.com/funvill/Question-Fingerprint'>project page</a> for more information</p>
     <div id="main-content">
-      <div id="question-section" style="display:none;">
+      <div id="question-section">
         <div class="question">
           <span id="question-id" style="font-size:0.9em;color:#888;"></span>
           <span id="question-text"></span>
@@ -46,8 +47,10 @@
     </div>
   </div>
   <footer style="text-align:center;margin:2em 0 0 0;color:#888;font-size:0.95em;">
-    <a href="#" id="footer-session-link">Session ID: <span id="footer-session-id"></span></a> |
+    Session ID: <a href="#" id="footer-session-link"><span id="footer-session-id"></span></a> |
     Questions answered: <span id="footer-answered-count">0</span>
+    <br>
+    <a href="/question-stats.html" id="question-stats-link-footer">View stats for questions</a>
     <br>
     <button id="reset-session-btn" style="margin-top:1em;background:#d32f2f;color:#fff;border:none;padding:0.5em 1.5em;border-radius:5px;cursor:pointer;">Reset Session</button>
     <div id="reset-warning" style="color:#d32f2f;font-size:0.95em;display:none;margin-top:0.5em;">Warning: This will generate a new session and you will not be able to recover your old session or answers!</div>

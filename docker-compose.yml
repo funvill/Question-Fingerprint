@@ -1,0 +1,28 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    container_name: question-fingerprint-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data.sqlite:/app/data.sqlite
+    environment:
+      - NODE_ENV=production
+    # Uncomment if you want to set a custom hostname inside the container
+    # hostname: questions.abluestar.com
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy-reverse-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+volumes:
+  caddy_data:
+  caddy_config:
